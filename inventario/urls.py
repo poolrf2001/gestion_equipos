@@ -12,5 +12,5 @@ router.register(r'historial', HistorialMantenimientoViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('inventarios_por_area/<int:area_id>/', inventarios_por_area, name='inventarios_por_area'),
-    path('api/responsable_area/<int:area_id>/', responsable_area, name='responsable_area'),
+    path('responsable_area/<int:area_id>/', responsable_area, name='responsable_area'),
 ]
