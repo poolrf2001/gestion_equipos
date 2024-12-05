@@ -3,15 +3,38 @@ from django.db import models
 class Area(models.Model):
     nombre = models.CharField(max_length=255)
     ubicacion = models.TextField(null=True, blank=True)
+    responsable = models.CharField(max_length=255, null=True, blank=True)  # Nuevo campo
 
     def __str__(self):
         return self.nombre
 
+
 class Inventario(models.Model):
     codigo_inventario = models.CharField(max_length=50, unique=True)  # Identificador único
-    detalle_bien = models.CharField(max_length=255)  # Ejemplo: CPU, Monitor, Laptop
+    DETALLE_BIEN_CHOICES = [
+        ('CPU', 'CPU'),
+        ('Laptop', 'Laptop'),
+        ('Impresora', 'Impresora'),
+        ('All in One', 'All in One'),
+    ]
+    detalle_bien = models.CharField(
+        max_length=50,
+        choices=DETALLE_BIEN_CHOICES
+    ) # Ejemplo: CPU, Monitor, Laptop
     marca = models.CharField(max_length=100, null=True, blank=True)  # Marca
-    modelo = models.CharField(max_length=100, null=True, blank=True)  # Modelo
+    modelo = models.CharField(max_length=100, null=True, blank=True)
+    procesador = models.CharField(max_length=50, null=True, blank=True)
+    generacion = models.CharField(max_length=50, null=True, blank=True)
+    velocidad = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    ram = models.IntegerField(null=True, blank=True)
+    capacidad_disco = models.CharField(max_length=50, null=True, blank=True)
+    tipo_disco = models.CharField(
+        max_length=50,
+        choices=[('HDD', 'HDD'), ('SSD', 'SSD')],
+        null=True,
+        blank=True
+    )
+    sistema_operativo = models.CharField(max_length=50, null=True, blank=True)  # Modelo
     estado_inventario = models.CharField(
         max_length=50,
         choices=[
@@ -98,7 +121,21 @@ class Periferico(models.Model):
     def __str__(self):
         return f"{self.tipo} ({self.codigo_inventario})"
     
+from django.db import models
+import json   
 class Mantenimiento(models.Model):
+    TAREAS_CHOICES = [
+        ('Inspección inicial', 'Inspección inicial'),
+        ('Limpieza interna y externa', 'Limpieza interna y externa'),
+        ('Revisión de conexiones internas y externas', 'Revisión de conexiones internas y externas'),
+        ('Actualización de software y controladores', 'Actualización de software y controladores'),
+        ('Verificación de estado del disco duro', 'Verificación de estado del disco duro'),
+        ('Pruebas de funcionamiento', 'Pruebas de funcionamiento'),
+        ('Activación de Windows', 'Activación de Windows'),
+        ('Activación de Office', 'Activación de Office'),
+        ('Otros', 'Otros'),
+    ]
+
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
     fecha_mantenimiento = models.DateTimeField()
     tipo_mantenimiento = models.CharField(
@@ -118,12 +155,11 @@ class Mantenimiento(models.Model):
         ],
         default='Bueno'
     )
-    tareas_realizadas = models.TextField(null=True, blank=True)  # Lista detallada de tareas realizadas
+    tareas_realizadas = models.JSONField(default=list, blank=True)
+    tareas_otros = models.TextField(null=True, blank=True)  # Lista detallada de tareas realizadas
     problemas_detectados = models.TextField(null=True, blank=True)
     acciones_recomendadas = models.TextField(null=True, blank=True)
-    observaciones_adicionales = models.TextField(null=True, blank=True)  # Nuevo campo
-    sugerencias_optimizacion = models.TextField(null=True, blank=True)  # Nuevo campo
-    notas_generales = models.TextField(null=True, blank=True)  # Nuevo campo
+    observaciones_adicionales = models.TextField(null=True, blank=True)  # Nuevo campo  # Nuevo campo
     responsable_area = models.CharField(max_length=255, null=True, blank=True)  # Responsable del área
 
     def save(self, *args, **kwargs):
@@ -137,8 +173,7 @@ class Mantenimiento(models.Model):
             inventario=self.inventario,
             fecha_mantenimiento=self.fecha_mantenimiento,
             tipo_mantenimiento=self.tipo_mantenimiento,
-            estado_general=self.estado_general,
-            estado_inventario=self.estado_inventario,
+            estado_general=self.estado_inicial,
             problemas_detectados=self.problemas_detectados,
             observaciones=f"Ficha de mantenimiento creada: {self.pk}",
             mantenimiento=self
