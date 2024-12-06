@@ -5,6 +5,10 @@ from .serializers import InventarioSerializer, MantenimientoSerializer, Historia
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 
+def equipos_principales_por_area(request, area_id):
+    equipos = Inventario.objects.filter(area_actual_id=area_id).values('id', 'codigo_inventario', 'detalle_bien')
+    return JsonResponse(list(equipos), safe=False)
+
 def responsable_area(request, area_id):
     area = Area.objects.filter(id=area_id).first()
     if area:

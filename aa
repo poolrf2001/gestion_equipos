@@ -1,0 +1,4 @@
+ id | codigo_inventario | tipo | marca | modelo | estado_inventario | fecha_actualizacion_estado | area_actual_id | equipo_principal_id | estado_conservacion 
+----+-------------------+------+-------+--------+-------------------+----------------------------+----------------+---------------------+---------------------
+(0 rows)
+

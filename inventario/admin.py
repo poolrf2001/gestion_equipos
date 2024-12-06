@@ -12,9 +12,12 @@ class InventarioAdmin(admin.ModelAdmin):
     class Media:
         js = ('admin/js/inventario.js',)
 
+from .models import Periferico
+from .forms import PerifericoForm
 @admin.register(Periferico)
 class PerifericoAdmin(admin.ModelAdmin):
-    list_display = ('codigo_inventario', 'tipo', 'marca', 'modelo', 'estado_inventario', 'area_actual', 'fecha_actualizacion_estado', 'equipo_principal')
+    form = PerifericoForm
+    list_display = ('codigo_inventario', 'tipo', 'marca', 'estado_inventario', 'area_actual', 'fecha_actualizacion_estado', 'equipo_principal')
     list_filter = ('tipo', 'estado_inventario', 'area_actual')
     search_fields = ('codigo_inventario', 'marca', 'modelo', 'tipo')
 

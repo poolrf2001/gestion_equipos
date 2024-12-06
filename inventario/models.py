@@ -90,8 +90,7 @@ class Periferico(models.Model):
             ('Otros', 'Otros'),
         ]
     )  # Tipo de periférico
-    marca = models.CharField(max_length=100, null=True, blank=True)  # Marca
-    modelo = models.CharField(max_length=100, null=True, blank=True)  # Modelo
+    marca = models.CharField(max_length=100, null=True, blank=True)  # Marca 
     estado_inventario = models.CharField(
         max_length=50,
         choices=[
@@ -111,11 +110,19 @@ class Periferico(models.Model):
         default='Regular'
     )  # Estado físico del periférico
     equipo_principal = models.ForeignKey(
-        'Inventario', on_delete=models.SET_NULL, null=True, blank=True, related_name='perifericos'
-    )  # Relación opcional con un equipo principal
+        Inventario,
+        on_delete=models.CASCADE,
+        related_name='perifericos',
+        null=True,
+        blank=True
+    )
     area_actual = models.ForeignKey(
-        Area, on_delete=models.SET_NULL, null=True, related_name='periferico_area_actual'
-    )  # Ubicación actual
+        Area,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='perifericos',
+    )
     fecha_actualizacion_estado = models.DateTimeField(auto_now=True)  # Última actualización del estado
 
     def __str__(self):
