@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import InventarioViewSet, MantenimientoViewSet, HistorialMantenimientoViewSet, inventarios_por_area, responsable_area, equipos_principales_por_area
+from .views import InventarioViewSet, MantenimientoViewSet, HistorialMantenimientoViewSet, inventarios_por_area, responsable_area, equipos_principales_por_area, generar_ficha_pdf_y_guardar
 
 # Router para las rutas automáticas
 router = DefaultRouter()
@@ -14,4 +14,5 @@ urlpatterns = [
     path('inventarios_por_area/<int:area_id>/', inventarios_por_area, name='inventarios_por_area'),
     path('responsable_area/<int:area_id>/', responsable_area, name='responsable_area'),
     path('equipos_principales_por_area/<int:area_id>/', equipos_principales_por_area, name='equipos_principales_por_area'),
+    path('mantenimiento/<int:mantenimiento_id>/ficha_pdf/', generar_ficha_pdf_y_guardar, name='generar_ficha_pdf_y_guardar'),
 ]

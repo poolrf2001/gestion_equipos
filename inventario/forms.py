@@ -27,14 +27,6 @@ class MantenimientoForm(forms.ModelForm):
         label="Especificar Tarea (Otros)"
     )
 
-    # Campo adicional para Área
-    area = forms.ModelChoiceField(
-        queryset=Area.objects.all(),
-        required=True,
-        label="Área",
-        widget=forms.Select(attrs={"onchange": "filterInventariosByArea()"})
-    )
-
     # Campo para mostrar el responsable del área
     responsable_area = forms.CharField(
         required=False,
@@ -70,11 +62,13 @@ class MantenimientoForm(forms.ModelForm):
                 pass
         elif self.instance.pk:
             # Si estamos editando un mantenimiento existente
-            self.fields['inventario'].queryset = self.instance.area_actual.inventario_set.all()
-            if self.instance.area_actual:
-                self.fields['responsable_area'].initial = self.instance.area_actual.responsable
-
-
+            if self.instance.area:
+                self.fields['responsable_area'].initial = self.instance.area.responsable
+                self.fields['inventario'].queryset = Inventario.objects.filter(area_actual=self.instance.area)
+                
+            # Verifica que el campo 'estado_general' esté presente antes de asignarlo
+        if 'estado_general' in self.fields:
+            self.fields['estado_general'].initial = self.instance.estado_general
 
     def clean(self):
         cleaned_data = super().clean()
@@ -85,6 +79,7 @@ class MantenimientoForm(forms.ModelForm):
         if 'Otros' in tareas_realizadas and not tareas_otros:
             self.add_error('tareas_otros', 'Debe especificar una tarea si selecciona "Otros".')
         return cleaned_data
+
 
 from django import forms
 from .models import Periferico, Area, Inventario

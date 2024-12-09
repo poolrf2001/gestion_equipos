@@ -1,0 +1,31 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li><a href="#" class="button" id="regenerar-pdf-button" style="margin-left: 15px;" disabled>
+        Regenerar PDF Seleccionado
+    </a>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const button = document.getElementById('regenerar-pdf-button');
+            const checkboxes = document.querySelectorAll('input.action-select');
+    
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    const selected = document.querySelector('input.action-select:checked');
+                    if (selected) {
+                        const mantenimientoId = selected.value;
+                        button.href = `/admin/inventario/mantenimiento/${mantenimientoId}/regenerar_pdf/`;
+                        button.removeAttribute('disabled');
+                    } else {
+                        button.href = "#";
+                        button.setAttribute('disabled', 'disabled');
+                    }
+                });
+            });
+        });
+    </script>
+    
+    </li>
+{% endblock %}

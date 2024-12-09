@@ -58,6 +58,17 @@ class Inventario(models.Model):
     )  # Ubicación actual
     fecha_actualizacion_estado = models.DateTimeField(auto_now=True)  # Última actualización del estado
 
+    def save(self, *args, **kwargs):
+        if self.pk:  # Si ya existe el registro
+            original = Inventario.objects.get(pk=self.pk)
+            if original.area_actual != self.area_actual:  # Si el área cambió
+                from .models import HistorialArea
+                HistorialArea.objects.create(
+                    inventario=self,
+                    area_anterior=original.area_actual,
+                    area_nueva=self.area_actual
+                )
+        super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.detalle_bien} ({self.codigo_inventario})"
 
@@ -125,6 +136,17 @@ class Periferico(models.Model):
     )
     fecha_actualizacion_estado = models.DateTimeField(auto_now=True)  # Última actualización del estado
 
+    def save(self, *args, **kwargs):
+        if self.pk:  # Si ya existe el registro
+            original = Periferico.objects.get(pk=self.pk)
+            if original.area_actual != self.area_actual:  # Si el área cambió
+                from .models import HistorialArea
+                HistorialArea.objects.create(
+                    periferico=self,
+                    area_anterior=original.area_actual,
+                    area_nueva=self.area_actual
+                )
+        super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.tipo} ({self.codigo_inventario})"
     
@@ -142,7 +164,7 @@ class Mantenimiento(models.Model):
         ('Activación de Office', 'Activación de Office'),
         ('Otros', 'Otros'),
     ]
-
+    area = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True, blank=True)
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
     fecha_mantenimiento = models.DateTimeField()
     tipo_mantenimiento = models.CharField(
@@ -162,40 +184,57 @@ class Mantenimiento(models.Model):
         ],
         default='Bueno'
     )
+    estado_general = models.CharField(
+        max_length=50,
+        choices=[
+            ('Óptimo', 'Óptimo'),
+            ('Bueno', 'Bueno'),
+            ('Regular', 'Regular'),
+            ('Malo', 'Malo')
+        ],
+        default='Bueno',
+        verbose_name="Estado General"  # Estado después del mantenimiento
+    )
     tareas_realizadas = models.JSONField(default=list, blank=True)
     tareas_otros = models.TextField(null=True, blank=True)  # Lista detallada de tareas realizadas
     problemas_detectados = models.TextField(null=True, blank=True)
     acciones_recomendadas = models.TextField(null=True, blank=True)
-    observaciones_adicionales = models.TextField(null=True, blank=True)  # Nuevo campo  # Nuevo campo
-    responsable_area = models.CharField(max_length=255, null=True, blank=True)  # Responsable del área
+    observaciones_adicionales = models.TextField(null=True, blank=True)  # Nuevo campo
+    responsable_area = models.CharField(max_length=255, null=True, blank=True)
+    foto_antes_1 = models.ImageField(upload_to='fotos_mantenimiento/', null=True, blank=True)
+    foto_antes_2 = models.ImageField(upload_to='fotos_mantenimiento/', null=True, blank=True)
+    foto_despues_1 = models.ImageField(upload_to='fotos_mantenimiento/', null=True, blank=True)
+    foto_despues_2 = models.ImageField(upload_to='fotos_mantenimiento/', null=True, blank=True)
+    pdf_url = models.URLField(max_length=200, null=True, blank=True)  # Almacena la URL o la ruta del PDF
 
     def save(self, *args, **kwargs):
-        # Llamar al método original save para guardar la ficha
-        super().save(*args, **kwargs)
-        
-        # Crear una nueva entrada en el historial
         from django.apps import apps
-        HistorialMantenimiento = apps.get_model('inventario', 'HistorialMantenimiento')  # Usar get_model
-        HistorialMantenimiento.objects.create(
+        HistorialMantenimiento = apps.get_model('inventario', 'HistorialMantenimiento')
+
+        # Verificar si ya existe un historial con la misma fecha y equipo
+        historial_existente = HistorialMantenimiento.objects.filter(
             inventario=self.inventario,
-            fecha_mantenimiento=self.fecha_mantenimiento,
-            tipo_mantenimiento=self.tipo_mantenimiento,
-            estado_general=self.estado_inicial,
-            problemas_detectados=self.problemas_detectados,
-            observaciones=f"Ficha de mantenimiento creada: {self.pk}",
-            mantenimiento=self
-        )
+            fecha_mantenimiento=self.fecha_mantenimiento
+        ).exists()
+
+        # Si no existe, crear un nuevo historial
+        if not historial_existente:
+            super().save(*args, **kwargs)  # Guardar el mantenimiento primero
+            HistorialMantenimiento.objects.create(
+                inventario=self.inventario,
+                fecha_mantenimiento=self.fecha_mantenimiento,
+                tipo_mantenimiento=self.tipo_mantenimiento,
+                estado_general=self.estado_general,
+                estado_inventario=self.inventario.estado_inventario,
+                problemas_detectados=self.problemas_detectados,
+                observaciones=f"Ficha de mantenimiento creada: {self.pk}",
+                mantenimiento=self
+            )
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Mantenimiento ({self.inventario.codigo_inventario}) - {self.fecha_mantenimiento}"
-
-class RegistroFotografico(models.Model):
-    mantenimiento = models.OneToOneField(Mantenimiento, on_delete=models.CASCADE)
-    foto_antes = models.ImageField(upload_to='fotos_mantenimiento/', null=True, blank=True)
-    foto_despues = models.ImageField(upload_to='fotos_mantenimiento/', null=True, blank=True)
-
-    def __str__(self):
-        return f"Fotos de {self.mantenimiento.inventario.codigo_inventario}"
 
 class HistorialMantenimiento(models.Model):
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)

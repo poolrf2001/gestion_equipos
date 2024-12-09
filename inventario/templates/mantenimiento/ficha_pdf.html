@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            color: #0056b3; /* Azul */
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #0056b3; /* Azul */
+        }
+        strong {
+            color: #0056b3; /* Azul para texto en negrita */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            color: #0056b3;
+        }
+        h3 {
+            color: #0056b3; /* Azul */
+        }
+        .images {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            page-break-before: always;
+        }
+        .images div {
+            width: 48%;
+            text-align: center;
+        }
+        .images img {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 30px;
+            color: #777;
+        }
+        .tareas {
+            list-style-type: none; /* Eliminar los puntos de la lista */
+            padding: 0; /* Eliminar el espacio de la lista */
+            margin: 0; /* Eliminar márgenes */
+        }
+        .tareas li {
+            margin-bottom: 5px; /* Espaciado entre tareas */
+            font-size: 14px; /* Ajustar tamaño del texto si es necesario */
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="header">
+        <h1>Ficha de Mantenimiento</h1>
+    </div>
+
+    <div class="section">
+        <h2>1. Datos del Equipo</h2>
+        <table>
+            <tr>
+                <th>CAMPO</th>
+                <th>DETALLE</th>
+            </tr>
+            <tr>
+                <td>N° de Inventario PC</td>
+                <td>{{ mantenimiento.inventario.codigo_inventario }}</td>
+            </tr>
+            {% if mantenimiento.inventario.tipo == 'CPU' %}
+            <tr>
+                <td>N° de Inventario MONITOR</td>
+                <td>
+                    {% with mantenimiento.inventario.periferico_set.all|first as monitor %}
+                        {% if monitor %}
+                            {{ monitor.codigo_inventario }}
+                        {% else %}
+                            S/N
+                        {% endif %}
+                    {% endwith %}
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Tipo de Equipo</td>
+                <td>{{ mantenimiento.inventario.detalle_bien }}</td>
+            </tr>
+            <tr>
+                <td>Marca y Modelo</td>
+                <td>
+                    {{ mantenimiento.inventario.marca }}
+                    {% if mantenimiento.inventario.tipo == 'CPU' %}
+                    / 
+                    {% with mantenimiento.inventario.periferico_set.all|first as monitor %}
+                        {% if monitor %}
+                            {{ monitor.marca }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    {% endwith %}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Ubicación (Gerencia/Sub gerencia)</td>
+                <td>{{ mantenimiento.area.nombre }}</td>
+            </tr>
+            <tr>
+                <td>Responsable del área</td>
+                <td>{{ mantenimiento.responsable_area }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="section">
+        <h2>Periféricos Asociados</h2>
+        {% if perifericos %}
+            <table>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Código de Inventario</th>
+                    <th>Marca</th>
+                    <th>Estado de Conservación</th>
+                </tr>
+                {% for periferico in perifericos %}
+                    <tr>
+                        <td>{{ periferico.tipo }}</td>
+                        <td>{{ periferico.codigo_inventario }}</td>
+                        <td>{{ periferico.marca }}</td>
+                        <td>{{ periferico.estado_conservacion }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No hay periféricos asociados.</p>
+        {% endif %}
+    </div>
+    
+    
+
+    <div class="section">
+        <h2>2. Información del Mantenimiento</h2>
+        <table>
+            <tr>
+                <th>Fecha de Mantenimiento</th>
+                <td>{{ mantenimiento.fecha_mantenimiento }}</td>
+            </tr>
+            <tr>
+                <th>Tipo de Mantenimiento (Preventivo/Correctivo)</th>
+                <td>{{ mantenimiento.tipo_mantenimiento }}</td>
+            </tr>
+            <tr>
+                <th>Estado Inicial del Equipo</th>
+                <td>{{ mantenimiento.estado_inicial }}</td>
+            </tr>
+        </table>
+        <h3>Tareas Realizadas:</h3>
+        <ul class="tareas">
+            {% for tarea in mantenimiento.tareas_realizadas %}
+                <li>✔ {{ tarea }}</li>
+            {% endfor %}
+            {% if mantenimiento.tareas_otros %}
+                <li>✔ Otros: {{ mantenimiento.tareas_otros }}</li>
+            {% endif %}
+        </ul>
+
+    </div>
+    
+
+    <div class="section">
+        <h2>3. Observaciones y Recomendaciones</h2>
+    
+        <h3>Estado General del Equipo:</h3>
+        <table>
+            <tr>
+                <td>Óptimo</td>
+                <td>{% if mantenimiento.estado_general == "Óptimo" %}✔{% else %}✖{% endif %}</td>
+            </tr>
+            <tr>
+                <td>Bueno</td>
+                <td>{% if mantenimiento.estado_general == "Bueno" %}✔{% else %}✖{% endif %}</td>
+            </tr>
+            <tr>
+                <td>Regular</td>
+                <td>{% if mantenimiento.estado_general == "Regular" %}✔{% else %}✖{% endif %}</td>
+            </tr>
+            <tr>
+                <td>Malo</td>
+                <td>{% if mantenimiento.estado_general == "Malo" %}✔{% else %}✖{% endif %}</td>
+            </tr>
+        </table>
+    
+        <h3>Problemas Detectados:</h3>
+        <p>{% if mantenimiento.problemas_detectados %}{{ mantenimiento.problemas_detectados }}{% else %}Ninguno{% endif %}</p>
+    
+        <h3>Acciones Recomendadas:</h3>
+        <p>{% if mantenimiento.acciones_recomendadas %}{{ mantenimiento.acciones_recomendadas }}{% else %}No se recomendaron acciones específicas.{% endif %}</p>
+
+        <h3>Observaciones adicionales:</h3>
+        <p>{% if mantenimiento.observaciones_adicionales %}{{ mantenimiento.observaciones_adicionales }}{% else %}Ninguna.{% endif %}</p>
+    </div>
+
+    <div class="section">
+        <h2>4. Registro Fotográfico</h2>
+        <div class="images" style="display: flex; flex-wrap: wrap; gap: 10px;">
+            {% if foto_antes_1_url %}
+                <div style="text-align: center; width: 48%;">
+                    <strong>Foto Antes 1</strong>
+                    <img src="{{ foto_antes_1_url }}" alt="Foto Antes 1" style="width: 100%; max-width: 300px; margin-top: 10px;">
+                </div>
+            {% endif %}
+            {% if foto_antes_2_url %}
+                <div style="text-align: center; width: 48%;">
+                    <strong>Foto Antes 2</strong>
+                    <img src="{{ foto_antes_2_url }}" alt="Foto Antes 2" style="width: 100%; max-width: 300px; margin-top: 10px;">
+                </div>
+            {% endif %}
+            {% if foto_despues_1_url %}
+                <div style="text-align: center; width: 48%;">
+                    <strong>Foto Después 1</strong>
+                    <img src="{{ foto_despues_1_url }}" alt="Foto Después 1" style="width: 100%; max-width: 300px; margin-top: 10px;">
+                </div>
+            {% endif %}
+            {% if foto_despues_2_url %}
+                <div style="text-align: center; width: 48%;">
+                    <strong>Foto Después 2</strong>
+                    <img src="{{ foto_despues_2_url }}" alt="Foto Después 2" style="width: 100%; max-width: 300px; margin-top: 10px;">
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Generado automáticamente por el sistema de Mantenimiento de la SGMITI.</p>
+    </div>
+</body>
+</html>
