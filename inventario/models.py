@@ -23,10 +23,27 @@ class Inventario(models.Model):
     ) # Ejemplo: CPU, Monitor, Laptop
     marca = models.CharField(max_length=100, null=True, blank=True)  # Marca
     modelo = models.CharField(max_length=100, null=True, blank=True)
-    procesador = models.CharField(max_length=50, null=True, blank=True)
+    procesador = models.CharField(
+        max_length=50, 
+        choices=[
+            ('Intel Celeron', 'Intel Celeron'),
+            ('Intel Atom', 'Intel Atom'),
+            ('Intel Pentium', 'Intel Pentium'),
+            ('Intel Core i3', 'Intel Core i3'), 
+            ('Intel Core i5', 'Intel Core i5'),
+            ('Intel Core i7', 'Intel Core i7'),],
+        null=True, blank=True)
     generacion = models.CharField(max_length=50, null=True, blank=True)
     velocidad = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
-    ram = models.IntegerField(null=True, blank=True)
+    ram = models.CharField(
+        choices=[
+            ('2 GB', '2 GB'),
+            ('4 GB', '4 GB'),  
+            ('8 GB', '8 GB'),
+            ('16 GB', '16 GB')],
+        null=True,
+        blank=True
+    )
     capacidad_disco = models.CharField(max_length=50, null=True, blank=True)
     tipo_disco = models.CharField(
         max_length=50,
@@ -34,7 +51,16 @@ class Inventario(models.Model):
         null=True,
         blank=True
     )
-    sistema_operativo = models.CharField(max_length=50, null=True, blank=True)  # Modelo
+    sistema_operativo = models.CharField(
+        max_length=50,
+        choices=[
+            ('Win 7', 'Win 7'), 
+            ('Win 8.1', 'Win 8.1'),
+            ('Win 10', 'Win 10'),
+            ('Win 11', 'Win 11'),],
+        null=True,
+        blank=True
+    )  # Modelo
     estado_inventario = models.CharField(
         max_length=50,
         choices=[

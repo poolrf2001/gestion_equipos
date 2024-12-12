@@ -116,7 +116,7 @@
             <tr>
                 <td>Marca y Modelo</td>
                 <td>
-                    {{ mantenimiento.inventario.marca }}
+                    {{ mantenimiento.inventario.marca }} {{ mantenimiento.inventario.modelo }}
                     {% if mantenimiento.inventario.tipo == 'CPU' %}
                     / 
                     {% with mantenimiento.inventario.periferico_set.all|first as monitor %}
