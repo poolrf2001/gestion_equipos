@@ -2,7 +2,16 @@ from django.db import models
 
 class Area(models.Model):
     nombre = models.CharField(max_length=255)
-    ubicacion = models.TextField(null=True, blank=True)
+    ubicacion = models.CharField(
+        max_length=50,
+        null=True,
+        choices=[
+            ('Centro Cívico', 'Centro Cívico'),
+            ('Terrapuerto', 'Terrapuerto'),
+            ('Moto Vivanco', 'Moto Vivanco'),
+            ('Camal', 'Camal')
+        ]
+    )
     responsable = models.CharField(max_length=255, null=True, blank=True)  # Nuevo campo
 
     def __str__(self):
@@ -223,8 +232,8 @@ class Mantenimiento(models.Model):
     )
     tareas_realizadas = models.JSONField(default=list, blank=True)
     tareas_otros = models.TextField(null=True, blank=True)  # Lista detallada de tareas realizadas
-    problemas_detectados = models.TextField(null=True, blank=True)
-    acciones_recomendadas = models.TextField(null=True, blank=True)
+    problemas_detectados = models.TextField(null=True, blank=True,default="Presencia de polvo en ventiladores y resto del equipo")
+    acciones_recomendadas = models.TextField(null=True, blank=True,default="Se recomienda realizar el mantenimiento periódico de cada 2 o 3 meses")
     observaciones_adicionales = models.TextField(null=True, blank=True)  # Nuevo campo
     responsable_area = models.CharField(max_length=255, null=True, blank=True)
     foto_antes_1 = models.ImageField(upload_to='fotos_mantenimiento/', null=True, blank=True)
