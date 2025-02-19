@@ -1,4 +1,6 @@
 from django.db import models
+from .validators import validate_image_file
+from .utils import convert_heic_to_jpg
 
 class Area(models.Model):
     nombre = models.CharField(max_length=255)
@@ -186,6 +188,10 @@ class Periferico(models.Model):
         return f"{self.tipo} ({self.codigo_inventario})"
     
 from django.db import models
+from PIL import Image
+import pyheif
+import os
+from django.core.files.base import ContentFile
 import json   
 class Mantenimiento(models.Model):
     TAREAS_CHOICES = [
@@ -244,7 +250,21 @@ class Mantenimiento(models.Model):
 
     def save(self, *args, **kwargs):
         from django.apps import apps
+        from .utils import convert_heic_to_jpg  # Asegúrate de importar esta función correctamente
         HistorialMantenimiento = apps.get_model('inventario', 'HistorialMantenimiento')
+
+        # Verificar y convertir imágenes HEIC a JPG antes de guardar
+        if self.foto_antes_1 and self.foto_antes_1.name.lower().endswith('.heic'):
+            self.foto_antes_1 = convert_heic_to_jpg(self.foto_antes_1)
+
+        if self.foto_antes_2 and self.foto_antes_2.name.lower().endswith('.heic'):
+            self.foto_antes_2 = convert_heic_to_jpg(self.foto_antes_2)
+
+        if self.foto_despues_1 and self.foto_despues_1.name.lower().endswith('.heic'):
+            self.foto_despues_1 = convert_heic_to_jpg(self.foto_despues_1)
+
+        if self.foto_despues_2 and self.foto_despues_2.name.lower().endswith('.heic'):
+            self.foto_despues_2 = convert_heic_to_jpg(self.foto_despues_2)
 
         # Verificar si ya existe un historial con la misma fecha y equipo
         historial_existente = HistorialMantenimiento.objects.filter(
@@ -267,9 +287,6 @@ class Mantenimiento(models.Model):
             )
         else:
             super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Mantenimiento ({self.inventario.codigo_inventario}) - {self.fecha_mantenimiento}"
 
 class HistorialMantenimiento(models.Model):
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
